@@ -1,4 +1,4 @@
-# rabbitconductor
+# rabbitmqhandler
 
 Work in progress
 
