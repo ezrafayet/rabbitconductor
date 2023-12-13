@@ -1,4 +1,4 @@
-package rabbitconductor
+package rabbitmqhandler
 
 import (
 	"context"
