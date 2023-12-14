@@ -1,50 +1,69 @@
-# rabbitmqhandler
+# Rabbitmqhandler
 
-Work in progress
+Rabbitmqhandler is a wrapper around the RabbitMQ client. It provides a simple interface
+to declare queues and fanout exchanges, to publish messages, and to declare handlers like 
+you would with an HTTP server.
 
-A RabbitMQ management library offering simple functions like easy queues and handlers declaration, message publishing and consumption.
+Notes:
+- It is currently tailored for my own usage, so there is not much room for
+configuration / multi channels usage and the patterns implemented are quite limited.
+- It panics for obvious misconfiguration, and does not recover.
 
-How to use:
+# Usage
 
+## Quick start
+
+### Install it
 ```
-package main
+go get -u github.com/ezrafayet/rabbitmqhandler
+```
 
-import (
-	"fmt"
-	"service/queuehandler"
-	"time"
-)
+### Initialize a new QueueHandler
+```
+q, err := rabbitmqhandler.New("amqp://guest:guest@queue:5672/", 15)
+```
 
-func main() {
-	q, err := queuehandler.NewQueueHandler("amqp://guest:guest@queue:5672/", 15)
+### Declare a queue
+```
+q.DeclareQueue("new_queue")
+```
 
-	if err != nil {
-		panic(err)
-	}
+### Attach a handler to read from the queue
+```
+func handlerFunction (res []byte) (err error) {
+    fmt.Println("Message received: " + string(res))
 
-	defer q.Close()
-
-	q.DeclareQueue("test_q1")
-
-	q.RegisterHandler("test_q1", func(res []byte) (err error) {
-		fmt.Println("Message received on q1 service 1 !: " + string(res))
-
-		return nil
-	})
-
-	err = q.Consume()
-
-	if err != nil {
-		panic(err)
-	}
-
-	go func() {
-		time.Sleep(10 * time.Second)
-		_ = q.Publish("test_q1", []byte("Hello from service 1 !"))
-	}()
-
-	forever := make(chan bool)
-
-	<-forever
+    return nil
 }
+
+q.RegisterHandler("new_queue", handlerFunction)
+```
+
+NB: to acknowledge the message, return nil from the handler.
+To reject it, return an error.
+
+### Publish to the queue
+```
+err = q.PublishToQueue("new_queue", []byte("Hello from service"))
+```
+
+## Fanout exchanges
+
+Fanout exchanges let you broadcast messages to multiple queues.
+
+### Declare a fanout exchange
+```
+// Create the fanout
+q.DeclareFanoutExchange("new_fanout")
+
+// Create the queue that will receive the messages
+q.DeclareQueue("new_queue")
+
+// Bind the queue to the fanout
+q.BindQueueToExchange("new_queue", "new_fanout")
+```
+
+### Publish to the fanout exchange
+```
+err = q.PublishToExchange("new_fanout", []byte("Hello from service"))
 ```
