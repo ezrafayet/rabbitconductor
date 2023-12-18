@@ -36,9 +36,9 @@ func New(rabbitMQURL string, retries uint8) (q *RabbitMQHandler, err error) {
 			return nil, fmt.Errorf("failed to connect to RabbitMQ: %v", err)
 		}
 
-		log.Printf("failed to connect to RabbitMQ, retrying in %d seconds", 2*i)
+		log.Printf("failed to connect to RabbitMQ, retrying in %d seconds", 2*(i+1))
 
-		time.Sleep(time.Duration(2*i) * time.Second)
+		time.Sleep(time.Duration(2*(i+1)) * time.Second)
 	}
 
 	channel, err := conn.Channel()
