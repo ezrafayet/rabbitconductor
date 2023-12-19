@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type Handler func(msg []byte) (err error)
+type Handler func(body []byte) (err error)
 
 type RabbitMQHandler struct {
 	conn      *amqp091.Connection

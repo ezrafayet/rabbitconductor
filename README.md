@@ -30,8 +30,8 @@ q.DeclareQueue("new_queue")
 
 ### Attach a handler to read from the queue
 ```
-func handlerFunction (msg []byte) (err error) {
-    fmt.Println("Message received: " + string(msg))
+func handlerFunction (body []byte) (err error) {
+    fmt.Println("Message received: " + string(body))
 
     return nil
 }
