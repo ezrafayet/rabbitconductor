@@ -196,31 +196,29 @@ func (q *RabbitMQHandler) Consume() (err error) {
 
 		queueName := queueName
 
-		go func() {
-			for msg := range msgs {
-				func() {
-					defer func() {
-						if r := recover(); r != nil {
-							log.Printf("recovered from panic in rabbitmqhandler: %v", r)
-						}
-					}()
-
-					err := q.handlers[queueName](msg.Body)
-
-					if err != nil {
-						log.Printf("failed to process the message: %s", err)
-
-						return
-					}
-
-					err = msg.Ack(false)
-
-					if err != nil {
-						log.Printf("failed to acknowledge the message: %s", err)
+		for msg := range msgs {
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Printf("recovered from panic in rabbitmqhandler: %v", r)
 					}
 				}()
-			}
-		}()
+
+				err := q.handlers[queueName](msg.Body)
+
+				if err != nil {
+					log.Printf("failed to process the message: %s", err)
+
+					return
+				}
+
+				err = msg.Ack(false)
+
+				if err != nil {
+					log.Printf("failed to acknowledge the message: %s", err)
+				}
+			}()
+		}
 	}
 
 	return nil
